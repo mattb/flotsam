@@ -1,0 +1,3 @@
+A pastebin for things that I want to share but aren't big enough for their own project.
+
+* barclays.rb - screenscrape Barclays online banking for account balances. Uses the .mobi site that has a no-PinSentry no-interaction route.
