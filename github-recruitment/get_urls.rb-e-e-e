@@ -1,7 +1,6 @@
 require 'rubygems'
 require 'cgi'
 
-require 'ajax_search'
 require 'bossman'
 include BOSSMan
 
