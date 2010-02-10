@@ -4,6 +4,6 @@ Spider the social graph of a geographic subset of GitHub users and rank them by 
 
 h2. Requirements
 
-@JRuby@
-@gem install bossman@
-@javac -cp `echo lib/*jar | tr ' ' :` Ranker.java@
+@JRuby
+gem install bossman
+javac -cp `echo lib/*jar | tr ' ' :` Ranker.java@
