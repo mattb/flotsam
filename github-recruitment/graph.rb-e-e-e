@@ -12,7 +12,7 @@ offset = 0
 done = false
 urls = []
 while !done
-    results = BOSSMan::Search.web('site:github.com location berlin "profile - github"', :start => offset)
+    results = BOSSMan::Search.web('site:github.com location london "profile - github"', :start => offset)
     offset += results.count.to_i
     if offset > results.totalhits.to_i
         done = true
