@@ -20,10 +20,12 @@ public class Ranker {
                 count++;
             }
         }
-        PageRank<String, Integer> pr = new PageRank<String, Integer>(g, 0.15);
+        /*PageRank<String, Integer> pr = new PageRank<String, Integer>(g, 0.15);
         for(int i = 0 ; i< 25; i++) {
             pr.step();
         }
+        */
+        BetweennessCentrality<String, Integer> pr = new BetweennessCentrality<String, Integer>(g);
         HashMap<String,Double> result = new HashMap<String,Double>();
         for(String v : g.getVertices()) {
             result.put(v,pr.getVertexScore(v));
