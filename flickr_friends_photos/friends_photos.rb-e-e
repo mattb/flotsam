@@ -2,41 +2,44 @@
 require 'rubygems'
 require 'flickraw' # gem
 require 'time'
-require 'rss'
+require 'rss/maker'
+gem 'sqlite3-ruby'
 require 'datamapper' # gem
 
 DataMapper.setup(:default, 'sqlite3:///tmp/friends_photos.sqlite3')
 
 class Photo
     include DataMapper::Resource
-    property :id,        Integer, :serial => true
+    property :id,        Serial
     property :datetaken, Time
-    property :url,       String, :size => 255
+    property :url,       String, :length => 255
     property :flickrid,  String
     property :owner,     String
     property :ownername, String
     property :title,     String
 end
 
-# NOTE: uncomment this for first run to create database
-# Photo.auto_migrate! 
+# NOTE: uncomment this for first run:
+#Photo.auto_migrate! 
 
 FlickRaw.shared_secret='YOUR SECRET HERE'
 FlickRaw.api_key='YOUR API KEY HERE'
 
 # NOTE: token setup
-frob = flickr.auth.getFrob
-auth_url = FlickRaw.auth_url :frob => frob, :perms => 'read'
-puts "Open this url in your process to complete the authication process : #{auth_url}"
-puts "Press Enter when you are finished."
-STDIN.getc
-token = flickr.auth.getToken :frob => frob
+# NOTE: uncomment this for first run:
+#frob = flickr.auth.getFrob
+#auth_url = FlickRaw.auth_url :frob => frob, :perms => 'read'
+#puts "Open this url in your process to complete the authication process : #{auth_url}"
+#puts "Press Enter when you are finished."
+#STDIN.getc
+#token = flickr.auth.getToken :frob => frob
+#puts token.inspect
 
 token = 'YOUR TOKEN HERE' # NOTE: stashed from a previous run of the above
 
-photos = flickr.photos.getContactsPhotos(:auth_token => token, :just_friends => 1, :extras => 'date_taken,owner_name',:count=>50)
+photos = flickr.photos.getContactsPhotos(:auth_token => token, :just_friends => 1, :extras => 'date_taken,owner_name',:count=>50).to_a
 flickr.contacts.getListRecentlyUploaded(:auth_token => token).each { |content|
-    photos += flickr.photos.search(:user_id => content.nsid, :extras => 'date_taken,owner_name', :auth_token => token)
+    photos += flickr.photos.search(:user_id => content.nsid, :extras => 'date_taken,owner_name', :auth_token => token).to_a
 }
 photos.select { |p| p.ispublic == 0 }.each do |photo|
     p = Photo.first(:flickrid => photo.id)
@@ -57,7 +60,7 @@ end
 
 photos = Photo.all
 
-atom = RSS::Maker.make("atom") do |maker|
+rdf = RSS::Maker.make("atom") do |maker|
     maker.channel.about = "http://example.com"
     maker.channel.title = "Friends-only photos"
     maker.channel.description = ""
@@ -70,7 +73,7 @@ atom = RSS::Maker.make("atom") do |maker|
 
     photos.each do |photo|
         maker.items.new_item do |item|
-            item.link = "http://www.flickr.com/photos/#{photo.owner}/#{photo.id}"
+            item.link = "http://www.flickr.com/photos/#{photo.owner}/#{photo.flickrid}"
             item.title = photo.title
             item.content.type = "xhtml"
             item.content.xhtml = "<img src='#{photo.url}' /><br />from #{photo.ownername}"
@@ -79,4 +82,4 @@ atom = RSS::Maker.make("atom") do |maker|
     end 
 end
 
-puts atom.to_s
+puts rdf.to_s
