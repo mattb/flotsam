@@ -20,7 +20,7 @@
             var w = document.body.clientWidth-20,
                 h = document.body.clientHeight-20,
                 x = pv.Scale.linear(0, m - 1).range(0, w),
-                y = pv.Scale.linear(0, 20 * n).range(0, h);
+                y = pv.Scale.linear(0, 50 * n).range(0, h);
              
             var vis = new pv.Panel()
                 .width(w)
