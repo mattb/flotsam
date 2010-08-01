@@ -2,7 +2,7 @@ require 'rubygems'
 require 'clusterer'
 require 'stemmer'
 require 'nokogiri'
-
+require 'erb'
 
 class Deliciousdata
     attr_accessor :xml
@@ -39,7 +39,7 @@ class Deliciousdata
     end
 
     def chartdata
-        factor = 60 * 60 * 24 * 7 * 4 # 4 week clumps
+        factor = 60 * 60 * 24 * 7 * 1 # 1 week clumps
         post_groups = self.posts.group_by { |p| Time.at(factor * (p['time'].to_i / factor).to_i) }
         return post_groups.sort_by { |timestamp, ps| timestamp }.map { |timestamp, ps|
             [timestamp, self.popularity(ps)]
@@ -63,5 +63,12 @@ class Deliciousdata
             }
         }
         return scores
+    end
+
+    def streamgraph(filename)
+        cdata = self.chartdata
+        open(filename,"w") { |f|
+            f.write(ERB.new(open("streamgraph.html.erb").read).result(binding))
+        }
     end
 end
