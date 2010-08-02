@@ -46,6 +46,19 @@ class Deliciousdata
         }
     end
 
+    def normalised_chartdata
+        cd = self.chartdata
+        cd.each { |c|
+            numbers = c[1]
+            scale = numbers.values.inject(0) { |a,b| a + b }.to_f
+            numbers.keys.each { |k|
+                numbers[k] = numbers[k] / scale
+            }
+            c[1] = numbers
+        }
+        return cd
+    end
+
     def popularity(ps=nil)
         ps ||= self.posts
         groups = self.clusters.map { |c| c.centroid.to_a.sort_by { |term,score| -score }.map { |term, score| term } }
@@ -69,6 +82,13 @@ class Deliciousdata
         cdata = self.chartdata
         open(filename,"w") { |f|
             f.write(ERB.new(open("streamgraph.html.erb").read).result(binding))
+        }
+    end
+
+    def stackedgraph(filename)
+        cdata = self.normalised_chartdata
+        open(filename,"w") { |f|
+            f.write(ERB.new(open("stackedgraph.html.erb").read).result(binding))
         }
     end
 end
