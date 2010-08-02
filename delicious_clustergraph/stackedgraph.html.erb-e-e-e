@@ -17,8 +17,8 @@
 
             var n = labels.length;
             var m = dates.length;
-            var w = document.body.clientWidth-20,
-                h = document.body.clientHeight-20,
+            var w = 3000; // previously: document.body.clientWidth-20,
+                h = document.body.clientHeight-40,
                 x = pv.Scale.linear(0, m - 1).range(200, w),
                 y = pv.Scale.linear(0, 1).range(0, h - 25);
              
