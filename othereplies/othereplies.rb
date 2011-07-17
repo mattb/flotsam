@@ -9,10 +9,10 @@ SEEN = {}
 require 'twitter-config'
 # twitter-config.rb should contain something like: 
 # Twitter.configure do |config|
-#   config.consumer_key = "BGb6jFgGhaQfNImCtQrA"
-#   config.consumer_secret = "..."
-#   config.oauth_token = "12530-N2IYgAi3OFYd2zz5JT5QPDcQVLkqQRuqLhrMFSN4XQ"
-#   config.oauth_token_secret = "..."
+#   config.consumer_key = "BG..."
+#   config.consumer_secret = "Oj..."
+#   config.oauth_token = "12530-..."
+#   config.oauth_token_secret = "oe..."
 # end
 #
 # you can use twitter_auth to generate the tokens:
