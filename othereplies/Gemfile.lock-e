@@ -1,0 +1,75 @@
+GEM
+  remote: http://rubygems.org/
+  specs:
+    abstract (1.0.0)
+    actionpack (3.0.9)
+      activemodel (= 3.0.9)
+      activesupport (= 3.0.9)
+      builder (~> 2.1.2)
+      erubis (~> 2.6.6)
+      i18n (~> 0.5.0)
+      rack (~> 1.2.1)
+      rack-mount (~> 0.6.14)
+      rack-test (~> 0.5.7)
+      tzinfo (~> 0.3.23)
+    activemodel (3.0.9)
+      activesupport (= 3.0.9)
+      builder (~> 2.1.2)
+      i18n (~> 0.5.0)
+    activesupport (3.0.9)
+    addressable (2.2.6)
+    builder (2.1.2)
+    erubis (2.6.6)
+      abstract (>= 1.0.0)
+    faraday (0.6.1)
+      addressable (~> 2.2.4)
+      multipart-post (~> 1.1.0)
+      rack (>= 1.1.0, < 2)
+    faraday_middleware (0.6.5)
+      faraday (~> 0.6.0)
+    hashie (1.0.0)
+    i18n (0.5.0)
+    json (1.5.3)
+    juggernaut (2.0.3)
+      redis
+    multi_json (1.0.3)
+    multi_xml (0.2.2)
+    multipart-post (1.1.2)
+    mustache (0.99.4)
+    oauth (0.4.5)
+    rack (1.2.3)
+    rack-mount (0.6.14)
+      rack (>= 1.0.0)
+    rack-test (0.5.7)
+      rack (>= 1.0)
+    redis (2.2.1)
+    rufus-scheduler (2.0.10)
+      tzinfo (>= 0.3.23)
+    simple_oauth (0.1.5)
+    sinatra (1.2.6)
+      rack (~> 1.1)
+      tilt (>= 1.2.2, < 2.0)
+    tilt (1.3.2)
+    twitter (1.6.0)
+      faraday (~> 0.6.1)
+      faraday_middleware (~> 0.6.3)
+      hashie (~> 1.0.0)
+      multi_json (~> 1.0.0)
+      multi_xml (~> 0.2.0)
+      simple_oauth (~> 0.1.5)
+    twitter-text (1.4.8)
+      actionpack
+    tzinfo (0.3.29)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  json
+  juggernaut
+  mustache
+  oauth
+  rufus-scheduler
+  sinatra
+  twitter
+  twitter-text
