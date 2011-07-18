@@ -1,2 +1,4 @@
 .*.sw*
 twitter-config.rb
+.bundle
+vendor
