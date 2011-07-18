@@ -1,3 +1,4 @@
+require 'thread' # http://stackoverflow.com/questions/5176782/uninitialized-constant-activesupportdependenciesmutex-nameerror
 require 'rubygems'
 require 'time'
 $KCODE='UTF8'
@@ -78,14 +79,17 @@ class User
 
   def get_timeline(user_id)
     begin
-      return self.client.user_timeline(user_id.to_i).select { |tweet|
+      tweets = self.client.user_timeline(user_id.to_i).select { |tweet|
         wanted = (!tweet.in_reply_to_user_id.nil? and !seen?(tweet.id) and !following.include?(tweet.in_reply_to_user_id))
       }.map { |tweet|
         timeline.add(tweet.to_json, Time.parse(tweet.created_at).to_i)
         tweet
       }
-    rescue
+      timeline.remrangebyrank(0,-50) # keep it down to 50 items
+      return tweets
+    rescue Exception => e
       puts "Problem retrieving #{user_id} for #{self.name}."
+      puts e.inspect
       return []
     end
   end
