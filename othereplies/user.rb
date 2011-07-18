@@ -4,7 +4,8 @@ $KCODE='UTF8'
 require 'bundler/setup'
 Bundler.require
 
-$redis = Redis.new(:host => 'localhost', :port => 6379)
+Redis::Objects.redis = Redis::Namespace.new(:or, :redis => Redis::Objects.redis)
+
 class User
   include Redis::Objects
   def initialize(id) @id = id end
@@ -21,7 +22,7 @@ class User
   set :seen
 
   def User.all
-    $redis.smembers("users")
+    Redis::Objects.redis.smembers("users")
   end
 
   def User.add(token, secret)
@@ -40,7 +41,7 @@ class User
       u.following.add(id)
     }
 
-    $redis.sadd("users",token)
+    Redis::Objects.redis.sadd("users",token)
     return u
   end
 

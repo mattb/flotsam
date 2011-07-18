@@ -65,6 +65,8 @@ GEM
       rack (>= 1.1.0)
       ruby-openid (>= 2.1.8)
     redis (2.2.1)
+    redis-namespace (1.0.3)
+      redis (< 3.0.0)
     redis-objects (0.5.1)
       redis (>= 2.1.1)
     rest-client (1.6.3)
@@ -100,6 +102,7 @@ DEPENDENCIES
   mustache
   oauth
   omniauth (>= 0.2.6)
+  redis-namespace
   redis-objects
   rufus-scheduler
   sinatra
