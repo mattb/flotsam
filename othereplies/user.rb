@@ -35,7 +35,6 @@ class User
     u.name = data.name
     u.twitter_id = data.id
     u.icon = data.profile_image_url
-    u.seen.clear
     u.following.clear
     client.friend_ids.ids.each { |id|
       u.following.add(id)
