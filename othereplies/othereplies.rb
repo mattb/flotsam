@@ -66,7 +66,10 @@ my_app = Sinatra.new {
 
   get '/auth/twitter/callback' do
     auth = request.env['omniauth.auth']
-    user = User.add(auth["credentials"]["token"], auth["credentials"]["secret"])
+    user = User.new(auth["credentials"]["token"])
+    if !user.name.exists?
+      user = User.add(auth["credentials"]["token"], auth["credentials"]["secret"])
+    end
     setup_jobs(user)
     redirect '/twitter/' + auth["credentials"]["token"]
   end
