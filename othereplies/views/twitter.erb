@@ -19,6 +19,9 @@
             });
             n++;
           });
+          setTimeout(function() {
+            $.get(window.location + "/refresh");
+          },1000);
         });
     </script>
     <style type='text/css'>

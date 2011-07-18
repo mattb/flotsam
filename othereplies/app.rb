@@ -24,13 +24,18 @@ class OtherApp < Sinatra::Base
     erb :twitter
   end
 
+  get '/twitter/:token/refresh' do
+    Redis::Objects.redis.publish("usercommands", { :id => params[:token], :command => 'refresh' }.to_json)
+    return 'OK'
+  end
+
   get '/auth/twitter/callback' do
     auth = request.env['omniauth.auth']
     user = User.new(auth["credentials"]["token"])
-    if !user.name.exists?
+    if !user.token.exists?
       user = User.add(auth["credentials"]["token"], auth["credentials"]["secret"])
     end
-    Redis::Objects.redis.publish("usercommands", { :id => user.token.value }.to_json)
+    Redis::Objects.redis.publish("usercommands", { :id => user.token.value, :command => 'setup' }.to_json)
 
     redirect '/twitter/' + auth["credentials"]["token"]
   end

@@ -52,6 +52,15 @@ def setup_jobs(user_id)
   end
 end
 
+def refresh(user_id)
+  user = User.new(user_id)
+  if user.token.exists?
+    user.recent_tweets do |user,tweet|
+      deliver_tweet(user,tweet)
+    end
+  end
+end
+
 User.all.each { |id|
   setup_jobs(id)
 }
@@ -60,6 +69,11 @@ redis = Redis::Namespace.new(:or, :redis => Redis.connect)
 redis.subscribe("usercommands") do |on|
   on.message do |type, data|
     data = JSON.parse(data)
-    setup_jobs(data['id'])
+    case data['command']
+    when 'setup'
+      setup_jobs(data['id'])
+    when 'refresh'
+      refresh(data['id'])
+    end
   end
 end
