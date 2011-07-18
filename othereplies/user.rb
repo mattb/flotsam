@@ -68,7 +68,7 @@ class User
     following_count = self.following.size
     frequency = (following_count.to_f / (rates.hourly_limit - 25)).ceil # how many hours we should take to cycle through all the IDs without busting the rate limit.
 
-    self.following.get.each_with_index { |id, idx|
+    self.following.get.sort_by { rand }.each_with_index { |id, idx|
       scheduler.every(frequency.to_s + "h", :first_in => ((frequency*60.0*60.0/following_count)*idx).to_i.to_s + "s", :tags => self.token.value) do
         self.get_timeline(id).each { |tweet|
           block.call(self, tweet)

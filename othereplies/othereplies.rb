@@ -46,7 +46,7 @@ def setup_jobs(user_id)
   if user.token.exists?
     puts "Setting up jobs for #{user.name}."
     user.schedule_calls(SCHEDULER) { |user, tweet|
-      puts "#{tweet.user.screen_name}: #{tweet.text}"
+      puts "[#{user.screen_name}]: #{tweet.user.screen_name}: #{tweet.text}"
       deliver_tweet(user, tweet)
     }
   end
