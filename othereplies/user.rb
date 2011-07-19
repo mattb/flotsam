@@ -5,6 +5,9 @@ $KCODE='UTF8'
 require 'bundler/setup'
 Bundler.require
 
+require 'em-http/middleware/oauth'
+require 'em-http/middleware/json_response'
+
 Redis::Objects.redis = Redis::Namespace.new(:or, :redis => Redis::Objects.redis)
 
 class User
@@ -69,29 +72,37 @@ class User
     frequency = (following_count.to_f / (rates.hourly_limit - 25)).ceil # how many hours we should take to cycle through all the IDs without busting the rate limit.
 
     self.following.get.sort_by { rand }.each_with_index { |id, idx|
-      scheduler.every(frequency.to_s + "h", :first_in => ((frequency*60.0*60.0/following_count)*idx).to_i.to_s + "s", :tags => self.token.value) do
-        self.get_timeline(id).each { |tweet|
-          block.call(self, tweet)
-        }
+      scheduler.every(frequency.to_s + "h", :blocking => true, :first_in => ((frequency*60.0*60.0/following_count)*idx).to_i.to_s + "s", :tags => self.token.value) do
+        EventMachine::HttpRequest.use EventMachine::Middleware::JSONResponse
+        conn = EventMachine::HttpRequest.new('https://api.twitter.com/1/statuses/user_timeline.json?user_id='+id)
+        conn.use EventMachine::Middleware::OAuth, { :consumer_key => Twitter.consumer_key,
+                                                    :consumer_secret => Twitter.consumer_secret,
+                                                    :access_token => self.token,
+                                                    :access_token_secret => self.secret }
+
+        http = conn.get
+        http.callback do
+          self.filter_timeline(http.response).each { |tweet|
+            block.call(self, tweet)
+          }
+        end
+        http.errback do
+          puts "WOE #{id}"
+        end
+
       end
     }
   end
 
-  def get_timeline(user_id)
-    begin
-      tweets = self.client.user_timeline(user_id.to_i).select { |tweet|
-        wanted = (!tweet.in_reply_to_user_id.nil? and !seen?(tweet.id) and !following.include?(tweet.in_reply_to_user_id))
-      }.map { |tweet|
-        timeline.add(tweet.to_json, Time.parse(tweet.created_at).to_i)
-        tweet
-      }
-      timeline.remrangebyrank(0,-50) # keep it down to 50 items
-      return tweets
-    rescue Exception => e
-      puts "Problem retrieving #{user_id} for #{self.name}."
-      puts e.inspect
-      return []
-    end
+  def filter_timeline(tweets)
+    tweets = tweets.map { |tweet| Hashie::Mash.new(tweet) }.select { |tweet|
+      wanted = (!tweet.in_reply_to_user_id.nil? and !seen?(tweet.id) and !following.include?(tweet.in_reply_to_user_id))
+    }.map { |tweet|
+      timeline.add(tweet.to_json, Time.parse(tweet.created_at).to_i)
+      tweet
+    }
+    timeline.remrangebyrank(0,-50) # keep it down to 50 items
+    return tweets
   end
 
   def recent_tweets(&block)
