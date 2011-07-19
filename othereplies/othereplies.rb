@@ -17,7 +17,7 @@ require 'twitter-config'
 TWEET_TEMPLATE =<<NYAN
 <!-- {{{tweetURL}}} -->
 <style type='text/css'>.bbpBox{{id}} {background-image:{{{profileBackgroundImage}}}; background-color: \#{{{profileBackgroundColor}}};padding:20px;} p.bbpTweet{background:#fff;padding:10px 12px 10px 12px;margin:0;min-height:48px;color:#000;font-size:18px !important;line-height:22px;-moz-border-radius:5px;-webkit-border-radius:5px} p.bbpTweet span.metadata{display:block;width:100%;clear:both;margin-top:8px;padding-top:12px;height:40px;border-top:1px solid #fff;border-top:1px solid #e6e6e6} p.bbpTweet span.metadata span.author{line-height:19px} p.bbpTweet span.metadata span.author img{float:left;margin:0 7px 0 0px;width:38px;height:38px} p.bbpTweet a:hover{text-decoration:underline}p.bbpTweet span.timestamp{font-size:12px;display:block}</style>
-<div class='bbpBox{{id}}'><p class='bbpTweet'>{{{tweetText}}}<span class='timestamp'><a title='{{timeStamp}}' href='{{{tweetURL}}}'>less than a minute ago</a> via {{{source}}} <a href='http://twitter.com/intent/favorite?tweet_id={{id}}'><img src='http://si0.twimg.com/images/dev/cms/intents/icons/favorite.png' /> Favorite</a> <a href='http://twitter.com/intent/retweet?tweet_id={{id}}'><img src='http://si0.twimg.com/images/dev/cms/intents/icons/retweet.png' /> Retweet</a> <a href='http://twitter.com/intent/tweet?in_reply_to={{id}}'><img src='http://si0.twimg.com/images/dev/cms/intents/icons/reply.png' /> Reply</a></span><span class='metadata'><span class='author'><a href='http://twitter.com/{{screenName}}'><img src='{{profilePic}}' /></a><strong><a href='http://twitter.com/{{screenName}}'>{{realName}}</a></strong><br/>{{screenName}}</span></span></p></div>
+<div class='bbpBox{{id}}'><p class='bbpTweet'>{{{tweetText}}}<span class='timestamp'><a title='{{timeStamp}}' href='{{{tweetURL}}}'>{{{timeStamp}}}</a> via {{{source}}} <a href='http://twitter.com/intent/favorite?tweet_id={{id}}'><img src='http://si0.twimg.com/images/dev/cms/intents/icons/favorite.png' /> Favorite</a> <a href='http://twitter.com/intent/retweet?tweet_id={{id}}'><img src='http://si0.twimg.com/images/dev/cms/intents/icons/retweet.png' /> Retweet</a> <a href='http://twitter.com/intent/tweet?in_reply_to={{id}}'><img src='http://si0.twimg.com/images/dev/cms/intents/icons/reply.png' /> Reply</a></span><span class='metadata'><span class='author'><a href='http://twitter.com/{{screenName}}'><img src='{{profilePic}}' /></a><strong><a href='http://twitter.com/{{screenName}}'>{{realName}}</a></strong><br/>{{screenName}}</span></span></p></div>
 NYAN
 
 EM.run do
@@ -46,10 +46,12 @@ EM.run do
     user = User.new(user_id)
     if user.token.exists?
       puts "Setting up jobs for #{user.name}."
+      t = Time.now
       user.schedule_calls(SCHEDULER) { |user, tweet|
         puts "[#{user.screen_name}]: #{tweet.user.screen_name}: #{tweet.text}"
         deliver_tweet(user, tweet)
       }
+      puts "... done setting up jobs for #{user.name} (#{Time.now - t} secs)"
     end
   end
 

@@ -87,7 +87,7 @@ class User
           }
         end
         http.errback do
-          puts "WOE #{id}"
+          puts "[self.screen_name] WOE #{id}"
         end
 
       end
