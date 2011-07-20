@@ -61,8 +61,6 @@ Thread.new { # have to run Redis subscription in a thread otherwise it blocks Ev
     on.message do |type, data|
       data = JSON.parse(data)
       case data['command']
-      when 'setup'
-        setup_jobs(data['id'])
       when 'refresh'
         refresh(data['id'])
       end
