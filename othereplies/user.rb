@@ -29,7 +29,7 @@ TIMELINE_JOB = Proc.new { |job|
     }
   end
   http.errback do
-    puts "[#{user.screen_name}] WOE #{id}"
+    puts "[#{user.screen_name}] WOE #{timeline_id}"
   end
 }
 
@@ -85,7 +85,7 @@ class User
   end
 
   def schedule_calls(scheduler, &block)
-    scheduler.find_by_tag(self.token.value).each { |job|
+    scheduler.find_by_tag(self.id).each { |job|
       job.unschedule
     }
 
@@ -103,7 +103,7 @@ class User
                       :user_id => self.id, 
                       :blocking => true, 
                       :first_in => first, 
-                      :tags => self.token.value)
+                      :tags => self.id)
     }
   end
 
