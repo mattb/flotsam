@@ -11,6 +11,7 @@ require 'em-http/middleware/json_response'
 Redis::Objects.redis = Redis::Namespace.new(:or, :redis => Redis::Objects.redis)
 
 class User
+  @@requests_in_flight = 0
   include Redis::Objects
   def initialize(id) @id = id end
   def id; @id; end
@@ -82,13 +83,16 @@ class User
 
     http = conn.get
     http.callback do
+      @@requests_in_flight -= 1
       self.filter_timeline(http.response).reverse.each { |tweet|
         block.call(self, tweet)
       }
     end
     http.errback do
+      @@requests_in_flight -= 1
       puts "[#{self.screen_name}] WOE #{timeline_id}"
     end
+    @@requests_in_flight += 1
   end
 
   def filter_timeline(tweets)
