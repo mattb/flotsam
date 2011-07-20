@@ -39,19 +39,6 @@ def deliver_tweet(user, tweet)
   Juggernaut.publish("/tweets/#{user.token}", Mustache.render(TWEET_TEMPLATE, template_data))
 end
 
-def setup_jobs(user_id)
-  user = User.new(user_id)
-  if user.token.exists?
-    puts "Setting up jobs for #{user.name}."
-    t = Time.now
-    user.schedule_calls(SCHEDULER) { |user, tweet|
-      puts "[#{user.screen_name}]: #{tweet.user.screen_name}: #{tweet.text}"
-      deliver_tweet(user, tweet)
-    }
-    puts "... done setting up jobs for #{user.name} (#{Time.now - t} secs)"
-  end
-end
-
 def refresh(user_id)
   user = User.new(user_id)
   if user.token.exists?
@@ -76,10 +63,22 @@ Thread.new { # have to run Redis subscription in a thread otherwise it blocks Ev
   end
 }
 
-EM.run do
-  SCHEDULER = Rufus::Scheduler::EmScheduler.start_new
+if User.all.size == 0
+  frequency = 300 # guess
+else
+  frequency = User.new(User.all.first).client.rate_limit_status.hourly_limit - 25
+end
 
-  User.all.each { |id|
-    setup_jobs(id)
+frequency = (3600.0 / frequency).ceil # per hour
+
+EM.run do
+  EM.add_periodic_timer(frequency) {
+    User.all.each do |id|
+      user = User.new(id)
+      user.next_request { |user, tweet|
+        puts "[#{user.screen_name}]: #{tweet.user.screen_name}: #{tweet.text}"
+        deliver_tweet(user, tweet)
+      }
+    end
   }
 end
