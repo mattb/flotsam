@@ -10,28 +10,30 @@ require 'em-http/middleware/json_response'
 
 Redis::Objects.redis = Redis::Namespace.new(:or, :redis => Redis::Objects.redis)
 
-TIMELINE_JOB = Proc.new { |job|
-  user = User.new(job.params[:user_id])
-  timeline_id = job.params[:follow_id]
-  EventMachine::HttpRequest.use EventMachine::Middleware::JSONResponse
-  conn = EventMachine::HttpRequest.new('https://api.twitter.com/1/statuses/user_timeline.json?user_id='+timeline_id)
-  conn.use EventMachine::Middleware::OAuth, { 
-    :consumer_key => Twitter.consumer_key,
-    :consumer_secret => Twitter.consumer_secret,
-    :access_token => user.token,
-    :access_token_secret => user.secret 
-  }
-
-  http = conn.get
-  http.callback do
-    user.filter_timeline(http.response).each { |tweet|
-      job.params[:schedule_block].call(user, tweet)
+class Jobs
+  def self.timeline(job)
+    user = User.new(job.params[:user_id])
+    timeline_id = job.params[:follow_id]
+    EventMachine::HttpRequest.use EventMachine::Middleware::JSONResponse
+    conn = EventMachine::HttpRequest.new('https://api.twitter.com/1/statuses/user_timeline.json?user_id='+timeline_id)
+    conn.use EventMachine::Middleware::OAuth, { 
+      :consumer_key => Twitter.consumer_key,
+      :consumer_secret => Twitter.consumer_secret,
+      :access_token => user.token,
+      :access_token_secret => user.secret 
     }
+
+    http = conn.get
+    http.callback do
+      user.filter_timeline(http.response).reverse.each { |tweet|
+        job.params[:schedule_block].call(user, tweet)
+      }
+    end
+    http.errback do
+      puts "[#{user.screen_name}] WOE #{timeline_id}"
+    end
   end
-  http.errback do
-    puts "[#{user.screen_name}] WOE #{timeline_id}"
-  end
-}
+end
 
 class User
   include Redis::Objects
@@ -45,7 +47,7 @@ class User
   value :twitter_id
   value :icon
   sorted_set :timeline
-  set :following
+  list :following
   set :seen
 
   def User.all
@@ -65,7 +67,7 @@ class User
     u.icon = data.profile_image_url
     u.following.clear
     client.friend_ids.ids.each { |id|
-      u.following.add(id)
+      u.following.push(id)
     }
 
     Redis::Objects.redis.sadd("users",token)
@@ -97,7 +99,7 @@ class User
 
     self.following.get.sort_by { rand }.each_with_index { |id, idx|
       first = ((rand()*30).to_i + ((frequency*60.0*60.0/following_count)*idx).to_i).to_s + "s"
-      scheduler.every(frequency.to_s + "h", TIMELINE_JOB, 
+      scheduler.every(frequency.to_s + "h", Jobs.method(:timeline), 
                       :schedule_block => block, 
                       :follow_id => id, 
                       :user_id => self.id, 
