@@ -48,6 +48,13 @@ def refresh(user_id)
   end
 end
 
+def reload_all_user_info
+  User.all.each do |id| 
+    u=User.new(id) 
+    User.add(u.token,u.secret) 
+  end
+end
+
 Thread.new { # have to run Redis subscription in a thread otherwise it blocks EventMachine
   redis = Redis::Namespace.new(:or, :redis => Redis.connect)
   redis.subscribe("usercommands") do |on|
