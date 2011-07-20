@@ -10,6 +10,29 @@ require 'em-http/middleware/json_response'
 
 Redis::Objects.redis = Redis::Namespace.new(:or, :redis => Redis::Objects.redis)
 
+TIMELINE_JOB = Proc.new { |job|
+  user = User.new(job.params[:user_id])
+  timeline_id = job.params[:follow_id]
+  EventMachine::HttpRequest.use EventMachine::Middleware::JSONResponse
+  conn = EventMachine::HttpRequest.new('https://api.twitter.com/1/statuses/user_timeline.json?user_id='+timeline_id)
+  conn.use EventMachine::Middleware::OAuth, { 
+    :consumer_key => Twitter.consumer_key,
+    :consumer_secret => Twitter.consumer_secret,
+    :access_token => user.token,
+    :access_token_secret => user.secret 
+  }
+
+  http = conn.get
+  http.callback do
+    user.filter_timeline(http.response).each { |tweet|
+      job.params[:schedule_block].call(user, tweet)
+    }
+  end
+  http.errback do
+    puts "[#{user.screen_name}] WOE #{id}"
+  end
+}
+
 class User
   include Redis::Objects
   def initialize(id) @id = id end
@@ -71,26 +94,16 @@ class User
     following_count = self.following.size
     frequency = (following_count.to_f / (rates.hourly_limit - 25)).ceil # how many hours we should take to cycle through all the IDs without busting the rate limit.
 
+
     self.following.get.sort_by { rand }.each_with_index { |id, idx|
-      scheduler.every(frequency.to_s + "h", :blocking => true, :first_in => ((frequency*60.0*60.0/following_count)*idx).to_i.to_s + "s", :tags => self.token.value) do
-        EventMachine::HttpRequest.use EventMachine::Middleware::JSONResponse
-        conn = EventMachine::HttpRequest.new('https://api.twitter.com/1/statuses/user_timeline.json?user_id='+id)
-        conn.use EventMachine::Middleware::OAuth, { :consumer_key => Twitter.consumer_key,
-                                                    :consumer_secret => Twitter.consumer_secret,
-                                                    :access_token => self.token,
-                                                    :access_token_secret => self.secret }
-
-        http = conn.get
-        http.callback do
-          self.filter_timeline(http.response).each { |tweet|
-            block.call(self, tweet)
-          }
-        end
-        http.errback do
-          puts "[self.screen_name] WOE #{id}"
-        end
-
-      end
+      first = ((rand()*30).to_i + ((frequency*60.0*60.0/following_count)*idx).to_i).to_s + "s"
+      scheduler.every(frequency.to_s + "h", TIMELINE_JOB, 
+                      :schedule_block => block, 
+                      :follow_id => id, 
+                      :user_id => self.id, 
+                      :blocking => true, 
+                      :first_in => first, 
+                      :tags => self.token.value)
     }
   end
 
