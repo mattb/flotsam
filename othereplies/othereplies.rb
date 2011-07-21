@@ -77,6 +77,7 @@ end
 frequency = (3600.0 / frequency).ceil # per hour
 
 EM.run do
+  EventMachine::HttpRequest.use EventMachine::Middleware::JSONResponse
   EM.add_periodic_timer(frequency) {
     User.all.each do |id|
       user = User.new(id)

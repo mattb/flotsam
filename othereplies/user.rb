@@ -76,7 +76,6 @@ class User
     timeline_id = self.following.shift
     self.following.push(timeline_id)
 
-    EventMachine::HttpRequest.use EventMachine::Middleware::JSONResponse
     url = 'https://api.twitter.com/1/statuses/user_timeline.json?user_id='+timeline_id
     if self.since_ids.has_key?(timeline_id)
       url += "&since_id=" + self.since_ids[timeline_id]
