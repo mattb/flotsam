@@ -80,9 +80,11 @@ EM.run do
   EM.add_periodic_timer(frequency) {
     User.all.each do |id|
       user = User.new(id)
-      user.next_request { |user, tweet|
-        puts "[#{user.screen_name}]: #{tweet.user.screen_name}: #{tweet.text}"
-        deliver_tweet(user, tweet)
+      EM.add_timer(frequency*rand/2) {
+        user.next_request { |user, tweet|
+          puts "[#{user.screen_name}]: #{tweet.user.screen_name}: #{tweet.text}"
+          deliver_tweet(user, tweet)
+        }
       }
     end
   }
