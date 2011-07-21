@@ -67,6 +67,11 @@ class User
       return
     end
 
+    if @@requests_in_flight > User.all.size * 1.2
+      puts "Throttling [#{@@requests_in_flight}]"
+      return
+    end
+
     timeline_id = self.following.shift
     self.following.push(timeline_id)
 
