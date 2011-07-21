@@ -110,7 +110,7 @@ class User
     tweets = tweets.map { |tweet| Hashie::Mash.new(tweet) }.select { |tweet|
       max_tweet_id = [max_tweet_id, tweet.id].max
       user_id = tweet.user.id
-      wanted = (!tweet.in_reply_to_user_id.nil? and !seen?(tweet.id) and !following.include?(tweet.in_reply_to_user_id))
+      wanted = (!tweet.in_reply_to_user_id.nil? and !seen?(tweet.id) and !following.include?(tweet.in_reply_to_user_id.to_s))
     }.map { |tweet|
       timeline.add(tweet.to_json, Time.parse(tweet.created_at).to_i)
       tweet
