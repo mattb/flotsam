@@ -25,6 +25,7 @@ class User
   sorted_set :timeline
   list :following
   set :seen
+  hash_key :since_ids
 
   def User.all
     Redis::Objects.redis.smembers("users")
@@ -77,6 +78,9 @@ class User
 
     EventMachine::HttpRequest.use EventMachine::Middleware::JSONResponse
     url = 'https://api.twitter.com/1/statuses/user_timeline.json?user_id='+timeline_id
+    if self.since_ids.has_key?(timeline_id)
+      url += "&since_id=" + self.since_ids[timeline_id]
+    end
     #puts url
     conn = EventMachine::HttpRequest.new(url)
     conn.use EventMachine::Middleware::OAuth, { 
@@ -101,13 +105,20 @@ class User
   end
 
   def filter_timeline(tweets)
+    max_tweet_id = 0
+    user_id = 0
     tweets = tweets.map { |tweet| Hashie::Mash.new(tweet) }.select { |tweet|
+      max_tweet_id = [max_tweet_id, tweet.id].max
+      user_id = tweet.user.id
       wanted = (!tweet.in_reply_to_user_id.nil? and !seen?(tweet.id) and !following.include?(tweet.in_reply_to_user_id))
     }.map { |tweet|
       timeline.add(tweet.to_json, Time.parse(tweet.created_at).to_i)
       tweet
     }
-    timeline.remrangebyrank(0,-50) # keep it down to 50 items
+    if max_tweet_id != 0 and user_id != 0
+      self.timeline.remrangebyrank(0,-50) # keep it down to 50 items
+      self.since_ids[user_id] = max_tweet_id
+    end
     return tweets
   end
 
