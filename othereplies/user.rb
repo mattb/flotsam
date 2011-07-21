@@ -76,9 +76,13 @@ class User
     timeline_id = self.following.shift
     self.following.push(timeline_id)
 
-    url = 'https://api.twitter.com/1/statuses/user_timeline.json?user_id='+timeline_id
+    url = 'https://api.twitter.com/'
+    path = '/1/statuses/user_timeline.json'
+    params = {
+      'user_id' => timeline_id
+    }
     if self.since_ids.has_key?(timeline_id)
-      url += "&since_id=" + self.since_ids[timeline_id]
+      params['since_id'] = self.since_ids[timeline_id]
     end
     #puts url
     conn = EventMachine::HttpRequest.new(url)
@@ -89,7 +93,7 @@ class User
       :access_token_secret => self.secret 
     }
 
-    http = conn.get
+    http = conn.get :path => path, :query => params
     http.callback do
       @@requests_in_flight -= 1
       self.filter_timeline(http.response).reverse.each { |tweet|
