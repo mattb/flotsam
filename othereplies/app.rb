@@ -20,6 +20,11 @@ class OtherApp < Sinatra::Base
     redirect '/auth/twitter'
   end
 
+  get '/debug' do
+    @users = User.all.map { |u| User.new(u) }.sort_by { |u| u.screen_name.value }
+    erb :debug
+  end
+
   get '/twitter/:token' do
     @token = params[:token]
     @juggernaut_port = 8081
