@@ -1,9 +1,7 @@
 require 'thread' # http://stackoverflow.com/questions/5176782/uninitialized-constant-activesupportdependenciesmutex-nameerror
 require 'rubygems'
-$KCODE='UTF8'
 require 'bundler/setup'
 Bundler.require
-include Twitter::Autolink
 
 require 'user'
 
@@ -14,25 +12,22 @@ require 'twitter-config'
 #   config.consumer_secret = "Oj..."
 # end
 
-TWEET_TEMPLATE =<<NYAN
-NYAN
-
 def deliver_tweet(user, tweet)
   template_data = {
     :id => tweet.id_str,
     :tweetURL => "http://www.twitter.com/#{tweet.user.screen_name}/statuses/#{tweet.id_str}",
     :screenName => tweet.user.screen_name,
-      :realName => tweet.user.name,
-      :tweetText => auto_link(tweet.text),
-      :source => tweet.source,
-      :profilePic => tweet.user.profile_image_url,
-      :profileBackgroundColor => tweet.user.profile_background_color,
-      :profileBackgroundImage => tweet.user.profile_use_background_image ? 'url(' + tweet.user.profile_background_image_url + ')' : 'none',
-      :profileTextColor => tweet.user.profile_text_color,
-      :profileLinkColor => tweet.user.profile_link_color,
-      :timeStamp => tweet.created_at,
-      :timeStamp_i => Time.parse(tweet.created_at).to_i,
-      :utcOffset => tweet.user.utc_offset
+    :realName => tweet.user.name,
+    :tweetText => tweet.text,
+    :source => tweet.source,
+    :profilePic => tweet.user.profile_image_url,
+    :profileBackgroundColor => tweet.user.profile_background_color,
+    :profileBackgroundImage => tweet.user.profile_use_background_image ? 'url(' + tweet.user.profile_background_image_url + ')' : 'none',
+    :profileTextColor => tweet.user.profile_text_color,
+    :profileLinkColor => tweet.user.profile_link_color,
+    :timeStamp => tweet.created_at,
+    :timeStamp_i => Time.parse(tweet.created_at).to_i,
+    :utcOffset => tweet.user.utc_offset
   }
   Juggernaut.publish("/tweets/#{user.token}", template_data.to_json)
 end

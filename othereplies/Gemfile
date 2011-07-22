@@ -1,6 +1,5 @@
 source :rubygems
 
-gem 'twitter-text'
 gem 'twitter'
 gem 'mustache'
 gem 'json'
