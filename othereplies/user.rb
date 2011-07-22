@@ -126,6 +126,6 @@ class User
   end
 
   def recent_tweets(&block)
-    self.timeline.range(0,10).each { |json| block.call(self,Hashie::Mash.new(JSON.parse(json))) }
+    self.timeline.revrange(0,10).reverse.each { |json| block.call(self,Hashie::Mash.new(JSON.parse(json))) }
   end
 end

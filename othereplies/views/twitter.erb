@@ -54,6 +54,10 @@
           setInterval(update_timestamps, 60*1000);
 
           setTimeout(function() {
+            $.get('/twitter/<%= @token %>/refresh');
+          },1000);
+
+          setTimeout(function() {
             $('#intro').hide(750);
           },10000);
         });

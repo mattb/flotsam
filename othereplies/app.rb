@@ -21,11 +21,13 @@ class OtherApp < Sinatra::Base
   end
 
   get '/debug' do
-    @users = User.all.map { |u| User.new(u) }.sort_by { |u| u.screen_name.value }
+    @users = User.all.map { |u| User.new(u) }.sort_by { |u| u.screen_name.value.downcase }
     erb :debug
   end
 
   get '/twitter/:token' do
+    Redis::Objects.redis.publish("usercommands", { :id => params[:token], :command => 'checkin' }.to_json)
+
     @token = params[:token]
     @juggernaut_port = 8081
     uri = URI.parse(request.url)
