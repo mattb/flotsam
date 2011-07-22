@@ -31,6 +31,7 @@ def deliver_tweet(user, tweet)
       :profileTextColor => tweet.user.profile_text_color,
       :profileLinkColor => tweet.user.profile_link_color,
       :timeStamp => tweet.created_at,
+      :timeStamp_i => Time.parse(tweet.created_at).to_i,
       :utcOffset => tweet.user.utc_offset
   }
   Juggernaut.publish("/tweets/#{user.token}", template_data.to_json)
