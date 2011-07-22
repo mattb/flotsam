@@ -3,15 +3,18 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
     <!-- change mattb.local here to your hostname. -->
-    <script src="http://127.0.0.1:8080/application.js" type="text/javascript"></script> 
+    <script src="<%= @juggernaut_url %>" type="text/javascript"></script> 
+    <script src="/jquery.mustache.js" type="text/javascript"></script>
     <script type="text/javascript">
+      var tweet_template = "<div class='bbpBox{{id}}' style='display:none'>";
+      tweet_template += "<style type='text/css'>.bbpBox{{id}} {background-image:{{{profileBackgroundImage}}}; background-color: \#{{{profileBackgroundColor}}};padding:20px;} p.bbpTweet{background:#fff;padding:10px 12px 10px 12px;margin:0;min-height:48px;color:#000;font-size:18px !important;line-height:22px;-moz-border-radius:5px;-webkit-border-radius:5px} p.bbpTweet span.metadata{display:block;width:100%;clear:both;margin-top:8px;padding-top:12px;height:40px;border-top:1px solid #fff;border-top:1px solid #e6e6e6} p.bbpTweet span.metadata span.author{line-height:19px} p.bbpTweet span.metadata span.author img{float:left;margin:0 7px 0 0px;width:38px;height:38px} p.bbpTweet a:hover{text-decoration:underline}p.bbpTweet span.timestamp{font-size:12px;display:block}</style>";
+      tweet_template += "<p class='bbpTweet'>{{{tweetText}}}<span class='timestamp'><a title='{{timeStamp}}' href='{{{tweetURL}}}'>{{{timeStamp}}}</a> via {{{source}}} <a href='http://twitter.com/intent/favorite?tweet_id={{id}}'><img src='http://si0.twimg.com/images/dev/cms/intents/icons/favorite.png' /> Favorite</a> <a href='http://twitter.com/intent/retweet?tweet_id={{id}}'><img src='http://si0.twimg.com/images/dev/cms/intents/icons/retweet.png' /> Retweet</a> <a href='http://twitter.com/intent/tweet?in_reply_to={{id}}'><img src='http://si0.twimg.com/images/dev/cms/intents/icons/reply.png' /> Reply</a></span><span class='metadata'><span class='author'><a href='http://twitter.com/{{screenName}}'><img src='{{profilePic}}' /></a><strong><a href='http://twitter.com/{{screenName}}'>{{realName}}</a></strong><br/>{{screenName}}</span></span></p></div>";
       $(function() {
-          var jug = new Juggernaut;
+          var jug = new Juggernaut({ port: <%= @juggernaut_port %>});
           var n = 0;
           jug.subscribe("/tweets/<%= @token %>", function(data){
-            console.log(data);
-            var div = $("<div class='tweet' id='tweet-" + n + "'>" + data + "</div>");
-            div.prependTo($("body"));
+
+            $($.mustache(tweet_template, $.parseJSON(data))).prependTo($('body')).show(200);
             $.each($(".tweet"), function(idx, elt) {
               if(idx > 50) {
                 $(elt).remove();
@@ -20,8 +23,8 @@
             n++;
           });
           setTimeout(function() {
-            $.get(window.location + "/refresh");
-          },1000);
+            $('#intro').hide(750);
+          },10000);
         });
     </script>
     <style type='text/css'>
@@ -33,5 +36,8 @@
     </style>
   </head>
   <body>
+    <div id="intro">
+      This is where tweets will start appearing. It takes a while to scan all the people you follow - we can only do about 300 an hour due to Twitter API rate limits.
+    </div>
   </body>
 </html>

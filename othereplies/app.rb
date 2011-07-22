@@ -6,6 +6,7 @@ Bundler.require
 
 require 'user'
 require 'twitter-config'
+require 'uri'
 
 class OtherApp < Sinatra::Base
   use Rack::Session::Cookie
@@ -21,6 +22,11 @@ class OtherApp < Sinatra::Base
 
   get '/twitter/:token' do
     @token = params[:token]
+    @juggernaut_port = 8081
+    uri = URI.parse(request.url)
+    uri.port = @juggernaut_port
+    uri.path = "/application.js"
+    @juggernaut_url = uri.to_s
     erb :twitter
   end
 
