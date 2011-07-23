@@ -3,9 +3,9 @@ require 'rubygems'
 require 'bundler/setup'
 Bundler.require
 
-require 'user'
+require './user'
 
-require 'twitter-config'
+require './twitter-config'
 # twitter-config.rb should contain something like: 
 # Twitter.configure do |config|
 #   config.consumer_key = "BG..."
@@ -20,6 +20,7 @@ def deliver_tweet(user, tweet)
     :realName => tweet.user.name,
     :tweetText => tweet.text,
     :source => tweet.source,
+    :inReplyTo => tweet.in_reply_to_status_id_str,
     :profilePic => tweet.user.profile_image_url,
     :profileBackgroundColor => tweet.user.profile_background_color,
     :profileBackgroundImage => tweet.user.profile_use_background_image ? 'url(' + tweet.user.profile_background_image_url + ')' : 'none',

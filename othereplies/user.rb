@@ -1,7 +1,6 @@
 require 'thread' # http://stackoverflow.com/questions/5176782/uninitialized-constant-activesupportdependenciesmutex-nameerror
 require 'rubygems'
 require 'time'
-$KCODE='UTF8'
 require 'bundler/setup'
 Bundler.require
 
