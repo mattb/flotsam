@@ -2,3 +2,9 @@
 twitter-config.rb
 .bundle
 vendor
+target
+project/boot
+project/target
+project/plugins/boot
+project/plugins/target
+tags
