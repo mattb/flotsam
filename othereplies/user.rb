@@ -75,7 +75,7 @@ class User
     timeline_id = self.following.shift
     self.following.push(timeline_id)
 
-    url = 'https://api.twitter.com/'
+    url = 'http://api.twitter.com/'
     path = '/1/statuses/user_timeline.json'
     params = {
       'user_id' => timeline_id
