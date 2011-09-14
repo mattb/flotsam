@@ -1,11 +1,13 @@
+name := "othereplies"
+
 resolvers += "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases" 
 
 resolvers += "repo.codahale.com" at "http://repo.codahale.com" 
 
 libraryDependencies ++= Seq(
-    "se.scalablesolutions.akka" % "akka-actor" % "1.1.3",
-    "se.scalablesolutions.akka" % "akka-remote" % "1.1.3",
-    "se.scalablesolutions.akka" % "akka-slf4j" % "1.1.3",
+    "se.scalablesolutions.akka" % "akka-actor" % "1.2-RC6",
+    "se.scalablesolutions.akka" % "akka-remote" % "1.2-RC6",
+    "se.scalablesolutions.akka" % "akka-slf4j" % "1.2-RC6",
     "org.slf4j" % "slf4j-simple" % "1.6.0",
     "org.slf4j" % "slf4j-api" % "1.6.0",
     "com.ning" % "async-http-client" % "1.6.4",
