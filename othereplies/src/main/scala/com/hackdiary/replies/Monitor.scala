@@ -55,7 +55,9 @@ class Monitor extends Actor {
   }
   def ready(registry : Map[String, Set[UntypedChannel]]) : Receive = {
     case InterestedInUsers(users) => {
-      val newRegistry = registry ++ users.map(id => { (id -> (registry.getOrElse(id, Set.empty) + self.channel)) })
+      val newRegistry = registry ++ users.map(id => 
+        (id -> (registry.getOrElse(id, Set.empty) + self.channel))
+      )
       become(ready(newRegistry))
     }
     case Tweet(tweet) => {

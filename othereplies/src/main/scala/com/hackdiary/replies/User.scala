@@ -89,32 +89,35 @@ class User(monitor : ActorRef, token : String, secret : String, screen_name : St
   def receive = {
     case Poll => poll
     case Tweet(tweet) => deliverTweet(tweet)
-    case Response(params, response) => {
-      response.getStatusCode match {
-        case 200 => {
-          val json = response.getResponseBody
-          val max_ids = jsonTimer.time {
-            mapper.readTree(json).map(tweet => {
-              monitor ! Tweet(tweet)
-              tweet path "id" getLongValue
-            })
+    case Response(params, response) => handleResponse(params, response)
+  }
+
+  def poll = if(following.size > 0) httpasync("http://api.twitter.com/1/statuses/user_timeline.json",nextParams)
+    
+  def handleResponse(params : Map[String,String], response : com.ning.http.client.Response) {
+    response.getStatusCode match {
+      case 200 => {
+        val json = response.getResponseBody
+        val max_ids = jsonTimer.time {
+          mapper.readTree(json).map(tweet => {
+            monitor ! Tweet(tweet)
+            tweet path "id" getLongValue
+          })
           }
-          if(max_ids nonEmpty) {
-            redis(_.hset("since_ids",params("user_id"),max_ids.max toString))
-          }
+        if(max_ids nonEmpty) {
+          redis(_.hset("since_ids",params("user_id"),max_ids.max toString))
         }
-        case 400 => EventHandler.error(this,"Bad request:" + response.getResponseBody)
-        case 401 => EventHandler.error(this,"Unauthorized!")
-        case m => EventHandler.error(this,"Other problem!")
-      }
+        }
+      case 400 => EventHandler.error(this,"Bad request:" + response.getResponseBody)
+      case 401 => EventHandler.error(this,"Unauthorized!")
+      case m => EventHandler.error(this,"Other problem!")
     }
   }
 
+  def wanted(t : JsonNode) = redis(! _.sismember("seen", t path "id_str" getTextValue)) && !(following contains(t path "in_reply_to_user_id_str" getTextValue))
+  
   def deliverTweet(t : JsonNode) : Unit = {
-    if(
-      redis(! _.sismember("seen", t path "id_str" getTextValue)) &&
-      !(following contains(t path "in_reply_to_user_id_str" getTextValue))
-    ) {
+    if(wanted(t)) {
       deliverTimer.time {
         val templateData = Map(
           "id" -> (t path "id_str" getTextValue),
@@ -164,9 +167,5 @@ class User(monitor : ActorRef, token : String, secret : String, screen_name : St
         params
       }
     })
-  }
-
-  def poll {
-    if(following.size > 0) httpasync("http://api.twitter.com/1/statuses/user_timeline.json",nextParams)
   }
 }
