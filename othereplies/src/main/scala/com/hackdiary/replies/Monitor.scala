@@ -46,7 +46,7 @@ class Monitor extends Actor {
   def receive = {
     case Start => {
       for((token,n) <- User.unwrapped_redis(_.smembers("or:users")) zipWithIndex) {
-        val actor = Actor.actorOf(User(self, token)).start
+        val actor = Actor.actorOf(new User(self, token)).start
         self.link(actor)
         Scheduler.schedule(actor, Poll, n % 12, 12, SECONDS)
       }

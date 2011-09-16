@@ -27,14 +27,6 @@ object User extends Instrumented {
   private val redisTimer = metrics.timer("redis")
   val asyncHttpClient = new AsyncHttpClient
   
-  def apply(monitor : ActorRef, token : String) = {
-    redis(token, r => {
-        val name = r.get("screen_name")
-        val secret = r.get("secret")
-        new User(monitor, token, secret, name)
-    })
-  }
-
   def unwrapped_redis[T](f: Jedis => T) = {
     redisTimer.time {
       val jedis = Monitor.jedispool.getResource
@@ -69,18 +61,20 @@ object User extends Instrumented {
   }
 }
 
-class User(monitor : ActorRef, token : String, secret : String, screen_name : String) extends Actor with Instrumented {
+class User(monitor : ActorRef, token : String) extends Actor with Instrumented {
   def redis[T](f: JedisCommands => T) = User.redis(token, f)
 
-  private val deliverTimer = metrics.timer("deliver")
-  private val jsonTimer = metrics.timer("json")
-  private val mapper = new ObjectMapper
-  private val time = DateTimeFormat.forPattern("EEE MMM dd HH:mm:ss Z yyyy")
-
+  val screen_name = redis(_.get("screen_name"))
+  val secret = redis(_.get("secret"))
   val calculator = new OAuthSignatureCalculator(new ConsumerKey(TwitterConfig.consumer_key,
     TwitterConfig.consumer_secret), new RequestToken(token, secret))
-
   val following : List[String] = redis(_.lrange("following",0,-1)) toList
+
+  val deliverTimer = metrics.timer("deliver")
+  val jsonTimer = metrics.timer("json")
+
+  val mapper = new ObjectMapper
+  val time = DateTimeFormat.forPattern("EEE MMM dd HH:mm:ss Z yyyy")
 
   override def preStart = {
     monitor ! InterestedInUsers(following)
