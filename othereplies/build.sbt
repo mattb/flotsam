@@ -19,15 +19,11 @@ libraryDependencies ++= Seq(
     "redis.clients" % "jedis" % "2.0.0",
     "org.scala-tools.time" % "time_2.9.0-1" % "0.5",
     "org.scalatra" %% "scalatra" % "2.0.0.RC1",
-    "org.scalatra" %% "scalatra-scalate" % "2.0.0.RC1",
-    "org.eclipse.jetty" % "jetty-webapp" % "7.4.5.v20110725" % "jetty",
-    "javax.servlet" % "servlet-api" % "2.5" % "provided"
+    "org.scalatra" %% "scalatra-scalate" % "2.0.0.RC1"
 )
 
 scalaVersion := "2.9.0-1"
 
 scalacOptions ++= Seq("-unchecked", "-deprecation")
 
-seq(sbtassembly.Plugin.assemblySettings: _*)
-
-seq(webSettings :_*)
+seq(com.github.retronym.SbtOneJar.oneJarSettings: _*)
