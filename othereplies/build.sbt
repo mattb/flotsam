@@ -5,10 +5,10 @@ resolvers += "Typesafe Repository" at "http://repo.typesafe.com/typesafe/release
 resolvers += "repo.codahale.com" at "http://repo.codahale.com" 
 
 libraryDependencies ++= Seq(
-    "se.scalablesolutions.akka" % "akka-actor" % "1.2-RC6",
-    "se.scalablesolutions.akka" % "akka-remote" % "1.2-RC6",
-    "se.scalablesolutions.akka" % "akka-slf4j" % "1.2-RC6",
-    "org.slf4j" % "slf4j-simple" % "1.6.0",
+    "se.scalablesolutions.akka" % "akka-actor" % "1.2",
+    "se.scalablesolutions.akka" % "akka-remote" % "1.2",
+    "se.scalablesolutions.akka" % "akka-slf4j" % "1.2",
+    "org.slf4j" % "slf4j-log4j12" % "1.6.0",
     "org.slf4j" % "slf4j-api" % "1.6.0",
     "com.ning" % "async-http-client" % "1.6.4",
     "org.codehaus.jackson" % "jackson-core-asl" % "1.8.3",

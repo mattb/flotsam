@@ -93,15 +93,15 @@ class User(monitor : ActorRef, token : String) extends Actor with Instrumented {
       case 200 => {
         val json = response.getResponseBody
         val max_ids = jsonTimer.time {
-          mapper.readTree(json).map(tweet => {
+          mapper.readTree(json).map { tweet => 
             monitor ! Tweet(tweet)
             tweet path "id" getLongValue
-          })
           }
+        }
         if(max_ids nonEmpty) {
           redis(_.hset("since_ids",params("user_id"),max_ids.max toString))
         }
-        }
+      }
       case 400 => EventHandler.error(this,"Bad request:" + response.getResponseBody)
       case 401 => EventHandler.error(this,"Unauthorized!")
       case m => EventHandler.error(this,"Other problem!")
@@ -132,10 +132,10 @@ class User(monitor : ActorRef, token : String) extends Actor with Instrumented {
         )
         val json = generate(templateData)
         EventHandler.info(this,"From @%s for @%s: %s".format(templateData("screenName"),screen_name,templateData("tweetText")))
-        redis(r => {
+        redis { r =>
           r.zadd("timeline", (time.parseDateTime(t path "created_at" getTextValue).millis / 1000), json)
           r.zremrangeByRank("timeline", 0, -50)
-        })
+        }
         User.unwrapped_redis(_.publish("juggernaut", generate(Map("channels" -> List("/tweets/" + token), "data" -> json))))
       }
     }
@@ -151,7 +151,7 @@ class User(monitor : ActorRef, token : String) extends Actor with Instrumented {
   }
 
   def nextParams = {
-    redis(r => {
+    redis { r => 
       val u = r.lpop("following")
       r.rpush("following",u)
       val params = Map("user_id" -> u)
@@ -160,6 +160,6 @@ class User(monitor : ActorRef, token : String) extends Actor with Instrumented {
       } else {
         params
       }
-    })
+    }
   }
 }
