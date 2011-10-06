@@ -80,6 +80,10 @@ class User(monitor : ActorRef, token : String) extends Actor with Instrumented {
     monitor ! InterestedInUsers(following)
   }
 
+  override def preRestart(reason: Throwable, message: Option[Any]) = {
+    EventHandler.info(this,"Restarting: %s - %s".format(message,reason))
+  }
+
   def receive = {
     case Poll => poll
     case Tweet(tweet) => deliverTweet(tweet)
@@ -102,9 +106,9 @@ class User(monitor : ActorRef, token : String) extends Actor with Instrumented {
           redis(_.hset("since_ids",params("user_id"),max_ids.max toString))
         }
       }
-      case 400 => EventHandler.error(this,"Bad request:" + response.getResponseBody)
-      case 401 => EventHandler.error(this,"Unauthorized!")
-      case m => EventHandler.error(this,"Other problem!")
+      case 400 => EventHandler.warning(this,"Bad request:" + response.getResponseBody)
+      case 401 => EventHandler.warning(this,"Unauthorized!")
+      case m => EventHandler.warning(this,"Other problem!")
     }
   }
 
@@ -146,8 +150,15 @@ class User(monitor : ActorRef, token : String) extends Actor with Instrumented {
     val builder = User.asyncHttpClient.prepareGet(url).setSignatureCalculator(calculator)
     for((k,v) <- params) builder.addQueryParameter(k,v)
     val ahcFuture = User.asyncHttpClient.executeRequest(builder.build)
-    ahcFuture.addListener(new Runnable { def run = self ! Response(params, ahcFuture.get) }, 
-                          new Executor { def execute(r : Runnable) = r.run })
+    ahcFuture.addListener(new Runnable { 
+      def run = {
+        try {
+          self ! Response(params, ahcFuture.get) 
+        } catch {
+          case e : Exception => EventHandler.error(e,ahcFuture,"Exception in HTTP request future.")
+        }
+      }
+    }, new Executor { def execute(r : Runnable) = r.run })
   }
 
   def nextParams = {
