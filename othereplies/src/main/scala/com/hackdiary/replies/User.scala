@@ -108,7 +108,7 @@ class User(monitor : ActorRef, token : String) extends Actor with Instrumented {
       }
       case 400 => EventHandler.warning(this,"Bad request:" + response.getResponseBody)
       case 401 => EventHandler.warning(this,"Unauthorized! [%s - %s]".format(screen_name,params.toString))
-      case m => EventHandler.warning(this,"Other problem: %d %s - %s".format(response.getStatusCode, response.getStatusText, response))
+      case m => EventHandler.warning(this,"Other problem: %d %s - %s".format(response.getStatusCode, response.getStatusText, response.getUri))
     }
   }
 
