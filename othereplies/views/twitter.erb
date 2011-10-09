@@ -1,0 +1,100 @@
+<html>
+  <head>
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+    <!-- change mattb.local here to your hostname. -->
+    <script src="<%= @juggernaut_url %>" type="text/javascript"></script> 
+    <script src="/jquery.mustache.js" type="text/javascript"></script>
+    <script src="/twitter-text.js" type="text/javascript"></script>
+    <script type="text/javascript">
+      var tweet_template = "<div class='tweet bbpBox{{id}}' style='display:none; clear: right'>";
+      tweet_template += "<style type='text/css'>.bbpBox{{id}} {background-image:{{{profileBackgroundImage}}}; background-color: \#{{{profileBackgroundColor}}};padding:20px;} p.bbpTweet{background:#fff;padding:10px 12px 10px 12px;margin:0;min-height:48px;color:#000;font-size:18px !important;line-height:22px;-moz-border-radius:5px;-webkit-border-radius:5px} p.bbpTweet span.metadata{display:block;width:100%;clear:both;margin-top:8px;padding-top:12px;height:40px;border-top:1px solid #fff;border-top:1px solid #e6e6e6} p.bbpTweet span.metadata span.author{line-height:19px} p.bbpTweet span.metadata span.author img{float:left;margin:0 7px 0 0px;width:38px;height:38px} p.bbpTweet a:hover{text-decoration:underline}p.bbpTweet span.timestamp{font-size:12px;display:block}</style>";
+      tweet_template += "<p class='bbpTweet'>{{{tweetText}}}<span class='timestamp'><a title='{{timeStamp}}' href='{{{tweetURL}}}' class='timestampText' data-timestamp='{{{timeStamp_i}}}'>{{{timeStamp}}}</a> via {{{source}}} <a href='http://twitter.com/intent/favorite?tweet_id={{id}}'><img src='http://si0.twimg.com/images/dev/cms/intents/icons/favorite.png' /> Favorite</a> <a href='http://twitter.com/intent/retweet?tweet_id={{id}}'><img src='http://si0.twimg.com/images/dev/cms/intents/icons/retweet.png' /> Retweet</a> <a href='http://twitter.com/intent/tweet?in_reply_to={{id}}'><img src='http://si0.twimg.com/images/dev/cms/intents/icons/reply.png' /> Reply</a></span><span class='metadata'><span class='author'><a href='http://twitter.com/{{screenName}}'><img src='{{profilePic}}' /></a><strong><a href='http://twitter.com/{{screenName}}'>{{realName}}</a></strong><br/>{{screenName}}</span></span></p></div>";
+      function prettyDate(date) { // thanks to http://ejohn.org/files/pretty.js
+        var diff = (((new Date()).getTime() - date.getTime()) / 1000),
+            day_diff = Math.floor(diff / 86400);
+
+        if ( isNaN(day_diff) || day_diff < 0 || day_diff >= 31 )
+          return;
+
+        return day_diff == 0 && (
+            diff < 60 && "just now" ||
+            diff < 120 && "1 minute ago" ||
+            diff < 3600 && Math.floor( diff / 60 ) + " minutes ago" ||
+            diff < 7200 && "1 hour ago" ||
+            diff < 86400 && Math.floor( diff / 3600 ) + " hours ago") ||
+          day_diff == 1 && "Yesterday" ||
+          day_diff < 7 && day_diff + " days ago" ||
+          day_diff < 31 && Math.ceil( day_diff / 7 ) + " weeks ago";
+      }
+      function update_timestamps() {
+        $('.timestampText').each(function(idx, elt) {
+            elt = $(elt);
+            var d = new Date();
+            var ts = elt.attr('data-timestamp');
+            d.setTime(parseInt(ts) * 1000);
+            elt.html(prettyDate(d));
+          });
+      }
+      $(function() {
+          var jug = new Juggernaut({ port: <%= @juggernaut_port %>});
+
+          jug.subscribe("/tweets/<%= @token %>", function(data){
+            data = $.parseJSON(data);
+            data.tweetText = twttr.txt.autoLink(data.tweetText);
+            var tweet = $($.mustache(tweet_template, data)).prependTo($('body')).data('tweet', data).show(200);
+            if(data.inReplyTo) {
+              tweet.one("mouseenter",function() {
+                $.getJSON('http://api.twitter.com/1/statuses/show/' + data.inReplyTo + '.json?callback=?', function(data) {
+                  var tweetData = {
+                      id : data.id_str,
+                      tweetURL : "http://www.twitter.com/" + data.user.screen_name + "/statuses/" + data.id_str,
+                      screenName : data.user.screen_name,
+                      realName : data.user.name,
+                      tweetText : data.text,
+                      source : data.source,
+                      profilePic : data.user.profile_image_url,
+                      profileBackgroundColor : data.user.profile_background_color,
+                      profileBackgroundImage : data.user.profile_background_image_url,
+                      profileTextColor : data.user.profile_text_color,
+                      profileLinkColor : data.user.profile_link_color,
+                      timeStamp : data.created_at,
+                      utcOffset : data.user.utc_offset
+                  };
+                  $($.mustache(tweet_template, tweetData)).appendTo(tweet).data('tweet', data).show().css('float','right')
+                });
+              });
+            }
+            update_timestamps();
+            $.each($(".tweet"), function(idx, elt) {
+              if(idx > 50) {
+                $(elt).remove();
+              }
+            });
+          });
+
+          setInterval(update_timestamps, 60*1000);
+
+          setTimeout(function() {
+            $.get('/twitter/<%= @token %>/refresh');
+          },1000);
+
+          setTimeout(function() {
+            $('#intro').hide(750);
+          },10000);
+        });
+    </script>
+    <style type='text/css'>
+      body { 
+        margin: 0;
+        font-family: Helvetica;
+        font-size: 24pt;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="intro" style="clear: left">
+      This is where tweets will start appearing. It takes a while to scan all the people you follow - we can only do about 300 an hour due to Twitter API rate limits.
+    </div>
+  </body>
+</html>

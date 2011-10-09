@@ -1,0 +1,13 @@
+.*.sw*
+twitter-config.rb
+.bundle
+vendor
+target
+project/boot
+project/target
+project/plugins/boot
+project/plugins/target
+tags
+src/main/scala/com/hackdiary/replies/TwitterConfig.scala
+*.log
+.rvmrc

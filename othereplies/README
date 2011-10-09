@@ -1,0 +1,9 @@
+Other Replies
+
+A full-browser-window second-screen streaming view of the @replies by people you are following, to people you're not following.
+
+Requires a twitter-config.rb (described in othereplies.rb) with keys in, and a change of hostname in public/index.html.
+
+Depends on Juggernaut/node/redis for streaming.
+
+Uses Mustache tweet template from http://media.twitter.com/blackbird-pie/
