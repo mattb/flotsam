@@ -1,0 +1,11 @@
+Stellar-to-Twitter
+
+Turn your Stellar flow into a Twitter timeline using Ruby as follows:
+
+1. Create a new Twitter account, like I did at http://twitter.com/mattb_stellar
+2. Rename config.yml.example to config.yml and edit it with your Stellar username, and valid OAuth credentials for the Twitter account
+3. gem install twitter ruby-oembed redis
+4. Make sure you have a redis instance running on localhost
+5. Run 'ruby stellar2twitter.rb' regularly using cron
+
+Tweets from your flow will be retweeted, and all other media will be inspected via OEmbed services to get the right title and author for a tweet pointing to them.
