@@ -1,0 +1,25 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>dp.SyntaxHighlighter Tests</title>
+</head>
+
+<body>
+    <div style='width:600px'>
+        <textarea name="code" class="ruby" id='source' rows="10" cols="60" style="display:none">
+        </textarea>
+    </div>
+    <link type="text/css" rel="stylesheet" href="/style/SyntaxHighlighter.css"></link>
+    <script class="javascript" src="/scripts/jquery.pack.js"></script>
+    <script class="javascript" src="/scripts/shCore.js"></script>
+    <script class="javascript" src="/scripts/shBrushRuby.js"></script>
+    <script class="javascript">
+        $(document).ready(function(){
+            $("#source").load("/src/stemtags.rb",{},function() {
+                dp.SyntaxHighlighter.HighlightAll('code');
+            });
+        });
+    </script>
+
+</body>
+<!-- InstanceEnd --></html>
