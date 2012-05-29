@@ -1,10 +1,8 @@
 # gem install twitter ruby-oembed redis
-require 'rubygems'
-require 'twitter'
-require 'oembed'
+require 'bundler'
+Bundler.require
 require 'open-uri'
 require 'rss/atom'
-require 'redis'
 
 config = YAML.load(open("config.yml"))
 Twitter.configure do |c|
