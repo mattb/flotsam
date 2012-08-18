@@ -1,0 +1,7 @@
+Retrieve PG&E smartmeter per-day energy usage data using CasperJS/PhantomJS.
+
+USAGE:
+
+$ casperjs username password YYYY MM DD
+
+outputs raw JSON from the PG&E dashboard.
